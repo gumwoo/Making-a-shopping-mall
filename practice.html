@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="practice-css.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-menu">집꾸미기</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="#home">Home</a></li>
+            <li class="nav-item"><a href="#store">스토어</a></li>
+            <li class="nav-item"><a href="#estimation">시공견적</a></li>
+        </ul>
+    </nav>
+    <div class="bgp">
+        <!-- 상품 검색 기능 -->
+        <div class="search-container">
+            <input type="text" id="product-search" placeholder="검색어 입력" />
+        </div>
+
+        <!-- 상품 목록 -->
+        <section class="products-container">
+            <!--
+             상품 카드 예시 
+            <article class="product-card">
+                <img src="pr1.JPG" alt="상품명" class="product-image">
+                <div class="product-details">
+                    <h2 class="product-title">식기세척기</h2>
+                    <p class="product-company">세척나라</p>
+                    <p class="product-price">가격: 10,000원</p>
+                    <button class="btn-add-cart">담기</button>
+                </div>
+            </article>
+            <article class="product-card">
+                <img src="pr2.JPG" alt="상품명" class="product-image">
+                <div class="product-details">
+                    <h2 class="product-title">원목 침대 프레임</h2>
+                    <p class="product-company">침대나라</p>
+                    <p class="product-price">가격: 20,000원</p>
+                    <button class="btn-add-cart">담기</button>
+                </div>
+            </article>
+            <article class="product-card">
+                <img src="pr3.JPG" alt="상품명" class="product-image">
+                <div class="product-details">
+                    <h2 class="product-title">천연 디퓨저 세트</h2>
+                    <p class="product-company">향기나라</p>
+                    <p class="product-price">가격: 30,000원</p>
+                    <button class="btn-add-cart">담기</button>
+                </div>
+            </article>
+            <article class="product-card">
+                <img src="pr4.JPG" alt="상품명" class="product-image">
+                <div class="product-details">
+                    <h2 class="product-title">시원한 서큘레이터</h2>
+                    <p class="product-company">바람나라</p>
+                    <p class="product-price">가격: 40,000원</p>
+                    <button class="btn-add-cart">담기</button>
+                </div>
+            </article>
+-->
+        </section>
+
+        <!-- 장바구니 영역 -->
+        <div class="cart-container">
+            <h2 class="cart-title">장바구니</h2>
+            <div class="cart-items" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <p class='txt'>여기로 드래그하세요</p>
+                <!-- 장바구니에 담긴 상품 목록이 표시됩니다 -->
+            </div>
+            <div class="cart-total">총액 0원</div>
+            <button type='button' class='btn btn-dark btn-purchase add-to-cart' data-bs-toggle="modal" data-bs-target="#purchaseModal" data-product-id='" + val.id + "'>구매하기</button>
+        </div>
+        <!-- 모달 -->
+        <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="purchaseModalLabel">구매 정보 입력</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="purchase-form">
+                            <div class="mb-3">
+                                <label for="customer-name" class="col-form-label">성함:</label>
+                                <input type="text" class="form-control" id="customer-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customer-contact" class="col-form-label">연락처:</label>
+                                <input type="text" class="form-control" id="customer-contact">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                        <button type="submit" class="btn btn-primary" form="purchase-form">입력 완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 영수증 표시 모달 -->
+        <div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="receiptModalLabel">영수증</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <canvas id="receiptCanvas" width="350" height="350" style="border:1px solid #000;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            var productsData = [];
+
+            // JSON 파일 로딩 및 초기 상품 표시
+            $.getJSON('store.json', function(data) {
+                productsData = data.products;
+                displayProducts(productsData);
+            });
+
+            // 상품 표시 함수
+            function displayProducts(products) {
+                var items = [];
+                $.each(products, function(key, val) {
+                    items.push("<article class='product-card' id='product-" + val.id + "' draggable='true'>");
+                    items.push("<img src='" + val.photo + "' alt='" + val.title + "' class='product-image'>");
+                    items.push("<div class='product-details'>");
+                    items.push("<h2 class='product-title'>" + val.title + "</h2>");
+                    items.push("<p class='product-company'>" + val.brand + "</p>");
+                    items.push("<p class='product-price'>가격: " + val.price.toLocaleString() + "원</p>");
+                    items.push("<button type='button' class='btn btn-dark add-to-cart' data-product-id='" + val.id + "'>담기</button>");
+                    items.push("</div></article>");
+                });
+                $('.products-container').html(items.join(''));
+                attachEventListeners(); // 이벤트 리스너 연결
+            }
+
+            // 검색어 하이라이트 함수
+            function highlight(text, search) {
+                if (!search) {
+                    return text;
+                }
+                return text.replace(new RegExp('(' + search + ')', 'gi'), '<span class="highlight">$1</span>');
+            }
+
+            // 검색 이벤트
+            $("#product-search").on("input", function() {
+                var searchText = $(this).val().toLowerCase();
+                var filteredProducts = productsData.filter(function(product) {
+                    return product.title.toLowerCase().includes(searchText) || product.brand.toLowerCase().includes(searchText);
+                });
+                displayProducts(filteredProducts);
+            });
+        });
+        // 드래그 앤 드롭 및 버튼 클릭 이벤트 핸들러
+        function attachEventListeners() {
+            $('.product-card').on('dragstart', function(event) {
+                event.originalEvent.dataTransfer.setData("text", event.target.id);
+            });
+
+            $('.add-to-cart').click(function() {
+                var productId = $(this).data('product-id');
+                var productElement = $('#product-' + productId);
+                addToCart(productElement, productId);
+            });
+
+            $('.cart-items').on('dragover', function(event) {
+                event.preventDefault();
+            });
+
+            $('.cart-items').on('drop', function(event) {
+                event.preventDefault();
+                var productId = event.originalEvent.dataTransfer.getData("text").split('-')[1];
+                var productElement = $('#product-' + productId);
+                addToCart(productElement, productId);
+            });
+        }
+
+        // 장바구니에 상품 추가 로직
+        function addToCart(productElement, productId) {
+            // "여기로 드래그하세요" 문구를 가진 요소를 숨김
+            $('.cart-items .txt').hide();
+
+            var cartItem = $('#cart-item-' + productId);
+            if (cartItem.length > 0) {
+                // 이미 장바구니에 있는 상품의 경우, 수량만 증가
+                var quantity = parseInt(cartItem.find('.product-quantity').text()) + 1;
+                cartItem.find('.product-quantity').text(quantity);
+            } else {
+                // 장바구니에 없는 상품의 경우, 새로운 카드 생성
+                var productCard = $('<div>', {
+                    id: 'cart-item-' + productId,
+                    class: 'cart-card product-card' // 'product-card' 클래스 추가로 동일한 스타일 적용
+                });
+                productCard.append($('<img>', {
+                    src: productElement.find('.product-image').attr('src'),
+                    class: 'cart-image product-image' // 'product-image' 클래스 추가로 동일한 스타일 적용
+                }));
+                productCard.append($('<div>', {
+                    class: 'cart-product-title product-title' // 'product-title' 클래스 추가로 동일한 스타일 적용
+                }).text(productElement.find('.product-title').text()));
+                productCard.append($('<div>', {
+                    class: 'cart-product-price product-price' // 'product-price' 클래스 추가로 동일한 스타일 적용
+                }).text(productElement.find('.product-price').text()));
+                productCard.append($('<div>', {
+                    class: 'product-quantity',
+                    text: '1'
+                }));
+
+                $('.cart-items').append(productCard);
+            }
+            updateTotal(); // 장바구니 총액 업데이트
+        }
+
+
+        // 장바구니 총액 업데이트 함수
+        function updateTotal() {
+            var total = 0;
+            $('.cart-card').each(function() {
+                var price = parseInt($(this).find('.cart-product-price').text().replace(/[^0-9]/g, ''));
+                var quantity = parseInt($(this).find('.product-quantity').text());
+                total += price * quantity;
+            });
+            $('.cart-total').text('총액 ' + total.toLocaleString() + '원');
+        }
+
+        // 페이지 로딩 시 함수 실행
+        $(document).ready(function() {
+            // 기존 코드
+        });
+
+        function drawReceipt() {
+            var canvas = document.getElementById('receiptCanvas');
+            var ctx = canvas.getContext('2d');
+
+            // 영수증에 들어갈 정보 준비
+            var currentDate = new Date().toLocaleString(); // 날짜와 시간을 모두 표시
+            var items = $('.cart-card');
+            var total = $('.cart-total').text().replace(/[^0-9]/g, ''); // 숫자만 추출
+
+            // 캔버스 초기화
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff'; // 흰색 배경
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 영수증 스타일 정의
+            ctx.fillStyle = '#000'; // 검은색 글씨
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('영수증', 10, 20);
+
+            // 날짜 출력
+            ctx.font = '12px Arial';
+            ctx.fillText(currentDate, 10, 40);
+
+            // 상품명 및 가격 출력
+            var y = 60;
+            items.each(function(index, item) {
+                var title = $(item).find('.cart-product-title').text();
+                var price = $(item).find('.cart-product-price').text().replace(/[^0-9]/g, '');
+                var quantity = $(item).find('.product-quantity').text();
+
+                ctx.font = '12px Arial';
+                ctx.fillText(title, 10, y);
+                ctx.fillText('가격: ' + price, 10, y + 15);
+                ctx.fillText('수량: ' + quantity, 150, y + 15);
+                y += 40; // 다음 상품을 위해 y 위치 증가
+            });
+
+            // 총 합계금액 출력
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText('총 합계: ' + total + '원', 10, y);
+        }
+
+
+        // 구매 정보 입력 모달의 "입력 완료" 버튼 클릭 이벤트
+        $('#purchase-form').on('submit', function(event) {
+            event.preventDefault(); // 폼 기본 제출 동작 방지
+
+            // 영수증 그리기 함수 호출
+            drawReceipt();
+
+            // 구매 정보 입력 모달 숨기기
+            $('#purchaseModal').modal('hide');
+
+            // 영수증 모달 표시
+            $('#receiptModal').modal('show');
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body></html>
